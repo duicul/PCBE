@@ -18,7 +18,7 @@ private Bursa b;
     	   Seller se=b.getSeller_list().get(new Random().nextInt(b.getSeller_list().size()));
     	   this.price=se.getPrice();
     	   this.no_stock=aux/b.getSeller_list().size();}
-       System.out.println("calculate stock "+this.getNo_stocks()+" "+this.getPrice());}
+       System.out.println("calculate stock "+this.getId()+" "+this.getNo_stocks()+" "+this.getPrice());}
        
     	public void run(){long init=System.currentTimeMillis();
     		while(System.currentTimeMillis()-init<60000)
@@ -28,8 +28,9 @@ private Bursa b;
     	}
     
     public void buy()
-    {while(!b.buy_stock(this));
-    System.out.println("Buy stock "+this.getNo_stocks()+" "+this.getPrice());}
+    {while(!b.buy_stock(this))
+    {this.calculateStock();}
+    System.out.println("Buy stock "+this.getId()+" "+this.getNo_stocks()+" "+this.getPrice());}
     	
 	public int getId_buyer() {
 			return id_buyer;

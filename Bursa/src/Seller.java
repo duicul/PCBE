@@ -12,11 +12,11 @@ private Bursa b;
     }
     public Seller(int id_seller,Bursa b)
     {this(id_seller,new Random().nextInt(50)+10,new Random().nextInt(500)+100,b);
-    System.out.println("Seller "+this.getNo_stock()+" "+this.getPrice());}
+    System.out.println("Seller "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());}
     
     public synchronized void generate(List<Seller> seller_list)
     {List<Buyer> buyer_list=b.getBuyer_list();
-    System.out.println("calc sell stock "+this.getNo_stock()+" "+this.getPrice());
+    System.out.println("calc sell stock "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());
     List<Tranzactie> transactions=b.getTransactions();
     Buyer bu=buyer_list.get(new Random().nextInt(buyer_list.size()));
     Seller se=seller_list.get(new Random().nextInt(seller_list.size()));
@@ -27,10 +27,10 @@ private Bursa b;
     {Tranzactie tr=transactions.get(new Random().nextInt(transactions.size()));
     this.price=(se.getPrice()+tr.getPrice()+bu.getPrice())/3;	
     this.no_stock=(se.getNo_stock()+tr.getNo_stocks()+bu.getNo_stocks())/3;}
-    System.out.println("generate "+this.getNo_stock()+" "+this.getPrice());}
+    System.out.println("generate "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());}
     
     public void sell_stock(List<Seller> seller_list)
-    {System.out.println("sell stock "+this.getNo_stock()+" "+this.getPrice());
+    {System.out.println("sell stock "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());
     	this.generate(seller_list);}
     
     public void run()

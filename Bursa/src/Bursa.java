@@ -37,7 +37,7 @@ private static Bursa b=null;
 			bu.start();
 		while(System.currentTimeMillis()-init<60000);
 		for(Tranzactie tr:b.getTransactions()) 
-			{System.out.println("Transaction"+tr.getId_seller()+" "+tr.getId_buyer()+" "+tr.getNo_stocks()+" "+tr.getPrice());
+			{System.out.println("Transaction "+tr.getId_seller()+" "+tr.getId_buyer()+" "+tr.getNo_stocks()+" "+tr.getPrice());
 	}}
 	
 	public List<Seller> getSeller_list() {
@@ -82,15 +82,15 @@ private static Bursa b=null;
 	    	return false;
 	    int no_stock_real=bu.getNo_stocks()<se.getNo_stock()?bu.getNo_stocks():se.getNo_stock();
 	    List<Seller> seller_list=this.getSeller_list();
-	    //this.lock_write_seller_list();
+	    this.lock_write_seller_list();
 	    se.sell_stock(seller_list);
-	    //this.unlock_write_seller_list();
+	    this.unlock_write_seller_list();
 	    this.lock_write_transactions();
 	    this.transactions.add(new Tranzactie(se.getId_seller(),bu.getId_buyer(),bu.getPrice(),no_stock_real));
 	    this.unlock_write_transactions();
-	    //this.lock_write_buyer_list();
+	    this.lock_write_buyer_list();
 	    bu.calculateStock();
-	    //this.unlock_write_buyer_list();
+	    this.unlock_write_buyer_list();
 	    return true;}
 
 	private void lock_read_seller_list()
@@ -112,9 +112,9 @@ private static Bursa b=null;
 		this.o_sell.notifyAll();}}
 
 	   private void lock_write_seller_list()
-	   {synchronized(this.o_sell)
-		{System.out.println("lock_write_seller_list"+this.seller_list_readers+" "+this.seller_list_writers+" "+this.seller_list_writereq);
-         seller_list_writereq++;
+	   {System.out.println("lock_write_seller_list"+this.seller_list_readers+" "+this.seller_list_writers+" "+this.seller_list_writereq);
+       synchronized(this.o_sell)
+		{seller_list_writereq++;
 		 while(seller_list_writers>0||seller_list_readers>0)
 			try {
 				this.o_sell.wait();
