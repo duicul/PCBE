@@ -5,7 +5,9 @@ public Tranzactie(int id_seller,int id_buyer,int no_stocks,int price)
 {this.id_seller=id_seller;
 this.id_buyer=id_buyer;
 this.no_stocks=no_stocks;
-this.price=price;}
+this.price=price;
+System.out.println("Trasnaction"+this.getId_buyer()+" "+this.getId_seller()+" "+this.getPrice()+" "+this.getNo_stocks());
+}
 public int getId_seller() {
 	return id_seller;
 }
