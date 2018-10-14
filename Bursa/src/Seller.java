@@ -11,7 +11,7 @@ private Bursa b;
     this.b=b;
     }
     public Seller(int id_seller,Bursa b)
-    {this(id_seller,new Random().nextInt(50)+10,new Random().nextInt(500)+100,b);
+    {this(id_seller,new Random().nextInt(10)+10,new Random().nextInt(500)+100,b);
     System.out.println("Seller "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());}
     
     public synchronized void generate(List<Seller> seller_list)

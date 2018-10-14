@@ -75,22 +75,22 @@ private static Bursa b=null;
 		
 	}
 	
-	public boolean buy_stock(Buyer bu)
+	public synchronized boolean buy_stock(Buyer bu)
 	{    Seller se;
 	    se=this.getSeller(bu.getPrice());
 	    if(se==null)
 	    	return false;
 	    int no_stock_real=bu.getNo_stocks()<se.getNo_stock()?bu.getNo_stocks():se.getNo_stock();
 	    List<Seller> seller_list=this.getSeller_list();
-	    this.lock_write_seller_list();
+	    //this.lock_write_seller_list();
 	    se.sell_stock(seller_list);
-	    this.unlock_write_seller_list();
+	    //this.unlock_write_seller_list();
 	    this.lock_write_transactions();
 	    this.transactions.add(new Tranzactie(se.getId_seller(),bu.getId_buyer(),bu.getPrice(),no_stock_real));
 	    this.unlock_write_transactions();
-	    this.lock_write_buyer_list();
+	    //this.lock_write_buyer_list();
 	    bu.calculateStock();
-	    this.unlock_write_buyer_list();
+	    //this.unlock_write_buyer_list();
 	    return true;}
 
 	private void lock_read_seller_list()
