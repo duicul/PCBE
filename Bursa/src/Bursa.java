@@ -63,8 +63,8 @@ public class Bursa extends Thread {
 				bu.join();
 			}catch (InterruptedException e) {
 				e.printStackTrace();}
-		for(Tranzactie tr:b.getTransactions()){
-			System.out.println("Transaction "+tr.getId_seller()+" "+tr.getId_buyer()+" "+tr.getNo_stocks()+" "+tr.getPrice());}
+		//for(Tranzactie tr:b.getTransactions()){
+			//System.out.println("Transaction "+tr.getId_seller()+" "+tr.getId_buyer()+" "+tr.getNo_stocks()+" "+tr.getPrice());}
 		
 		System.out.println(b.getTransactions().size()+" Transactions");	}
 	

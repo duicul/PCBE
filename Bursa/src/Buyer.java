@@ -10,7 +10,7 @@ public class Buyer extends Thread {
 		this.b=b;}
         
 	public void calculateStock(){ 
-	   int price_aux=(b.getMinimumTransactionPriceSelling());//(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMinimumTransactionPriceSold())/3;
+	   int price_aux=(b.getAverageTransactionPriceSelling());//(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMinimumTransactionPriceSold())/3;
 	   int no_stock_aux=(b.getMaximumTransactionNoStockSelling()+b.getAverageTransactionNoStockSold())/2;//+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold())/3;
 	   this.lock_write_buyer();
 	   //System.out.println("calculate buyer");

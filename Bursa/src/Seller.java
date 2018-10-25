@@ -44,18 +44,20 @@ public class Seller extends Thread {
     	//System.out.println("generate "+this.id_seller+" "+this.no_stock+" "+this.price);    
     	this.unlock_write_seller();}
     
-    public void sell_stock(Buyer bu){
+    public synchronized void sell_stock(Buyer bu){
     	//System.out.println("sell stock "+this.getId()+this.getPrice());
     	if(bu.getPrice()==this.getPrice()) {
     		b.add_transaction(bu, this);
-    		bu.calculateStock();
-    		this.generate();}}
+    		this.generate();
+    		bu.calculateStock();}
+    	}
     
     public void run(){
     	long init=System.currentTimeMillis();
-    	while(System.currentTimeMillis()-init<10000){
-    		if(new Random().nextInt(100)>80)
-    			this.generate();}
+    	while(System.currentTimeMillis()-init<10000);
+    	{if(new Random().nextInt(100)>80)
+    		synchronized(this) {	
+    		this.generate();}}
     	}
 
     public int getId_seller() {
