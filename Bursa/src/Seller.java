@@ -29,14 +29,14 @@ public class Seller extends Thread {
     	return false;}
     
     public Seller(int id_seller,Bursa b){
-    	this(id_seller,new Random().nextInt(10)+10,new Random().nextInt(500)+100,b);
+    	this(id_seller,new Random().nextInt(20)+30,new Random().nextInt(200)+300,b);
     	o_sell=new Object();
     	//System.out.println("Seller "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());
     	}
     
     private void generate(){
-    	int price_aux=(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMaximumTransactionPriceSold()+new Random().nextInt(500)+100+new Random().nextInt(500)+100)/5;
-    	int no_stock_aux=(b.getAverageTransactionNoStockSelling()+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold()+new Random().nextInt(20)+10+new Random().nextInt(30)+10)/6;
+    	int price_aux=(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMaximumTransactionPriceSold()+new Random().nextInt(100)+400+new Random().nextInt(100)+400)/5;
+    	int no_stock_aux=(b.getAverageTransactionNoStockSelling()+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold()+new Random().nextInt(10)+20+new Random().nextInt(10)+20)/5;
     	this.lock_write_seller();
     	//System.out.println("generate buyer");
     	this.no_stock=no_stock_aux;
@@ -55,8 +55,9 @@ public class Seller extends Thread {
     public void run(){
     	long init=System.currentTimeMillis();
     	while(System.currentTimeMillis()-init<10000);
-    	{if(new Random().nextInt(100)>80)
-    		synchronized(this) {	
+    	{
+			if(new Random().nextInt(100)>80)
+				synchronized(this) {		
     		this.generate();}}
     	}
 
