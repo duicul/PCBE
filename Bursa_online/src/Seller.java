@@ -5,13 +5,16 @@ public class Seller extends Thread {
 	private int seller_readers=0,seller_writers=0,seller_writereq=0;
 	private Object o_sell;
 	private Bursa b;
+	private Dispatcher d;
 	private volatile boolean kill=false;
     
-	public Seller(int id_seller,int no_stock,int price,Bursa b){
+	public Seller(int id_seller,int no_stock,int price,Bursa b,Dispatcher d){
 		this.id_seller=id_seller;
 		this.no_stock=no_stock;
 		this.price=price;
-		this.b=b;}
+		this.b=b;
+		this.d=d;
+		d.addSubscriber(this, new Filter("buy"), "buy");}
     
     public boolean raisePrice(int percent){
     	if(percent>0&&percent<100){
@@ -29,21 +32,24 @@ public class Seller extends Thread {
     		return true;}
     	return false;}
     
-    public Seller(int id_seller,Bursa b){
-    	this(id_seller,new Random().nextInt(20)+30,new Random().nextInt(200)+300,b);
+    public Seller(int id_seller,Bursa b,Dispatcher d){
+    	this(id_seller,new Random().nextInt(20)+30,new Random().nextInt(200)+300,b,d);
     	o_sell=new Object();
     	//System.out.println("Seller "+this.getId()+" "+this.getNo_stock()+" "+this.getPrice());
     	}
     
-    private void generate(){
-    	/*int price_aux=(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMaximumTransactionPriceSold()+new Random().nextInt(100)+400+new Random().nextInt(100)+400)/5;
+    public void generate(){
+    	int price_aux=b.getMaximumTransactionPriceSold();
     	int no_stock_aux=(b.getAverageTransactionNoStockSelling()+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold()+new Random().nextInt(10)+20+new Random().nextInt(10)+20)/5;
     	this.lock_write_seller();
     	//System.out.println("generate buyer");
     	this.no_stock=no_stock_aux;
     	this.price=price_aux;
     	//System.out.println("generate "+this.id_seller+" "+this.no_stock+" "+this.price);    
-    	this.unlock_write_seller();*/}
+    	this.unlock_write_seller();
+    	d.publish(this, new Event("sell",this.price,this.no_stock));
+    	
+    }
     
     public synchronized void sell_stock(Buyer bu){
     	//System.out.println("sell stock "+this.getId()+this.getPrice());
@@ -54,13 +60,25 @@ public class Seller extends Thread {
     	}
     
     public void run(){
-    	while(!kill);}
+    	while(!kill)
+    	{if(new Random().nextFloat()>0.7)
+    		this.generate();
+    	if(new Random().nextFloat()>0.9)
+    		this.raisePrice((int)new Random().nextFloat()*50);
+    	if(new Random().nextFloat()>0.9)
+    		this.lowerPrice((int)new Random().nextFloat()*50);
+    	}
+    	System.out.println("Seller kill");
+    }
     
     public void inform(Buyer b,Event e)
     {if(e.name.equals("kill"))
-    	this.kill=true;}
+    	{kill=true;
+    	System.out.println("Seller interrupted");}
+    else if(e.name.equals("buy"))
+    {this.sell_stock(b);}
     
-    
+    }   
 
     public int getId_seller() {
 		return id_seller;}

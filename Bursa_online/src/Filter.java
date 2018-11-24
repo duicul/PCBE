@@ -1,7 +1,8 @@
 
-public abstract class Filter {
+public class Filter {
 protected String name;
 public Filter(String name)
 {this.name=name;}
-public abstract boolean apply(Event e);
+public boolean apply(Event e)
+{return e.name.equals(this.name);}
 }
