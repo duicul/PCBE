@@ -26,7 +26,8 @@ public class Bursa extends Thread {
     	this.o_trans=new Object();}
     	
     	 public static Bursa create(int no_seller,int no_buyer)
-    { 	b=(b==null)?new Bursa(no_buyer,no_seller):b;	
+    { 	System.out.println("Bursa create");
+    		 b=(b==null)?new Bursa(no_buyer,no_seller):b;	
     	return b;}
     
     private Bursa()
@@ -36,7 +37,7 @@ public class Bursa extends Thread {
     	this.o_trans=new Object();}
     
     public static Bursa create()
-    {
+    {   System.out.println("Bursa create");
     	b=(b==null)?new Bursa():b;	
     	return b;}
    
@@ -50,7 +51,7 @@ public class Bursa extends Thread {
 		long init=System.currentTimeMillis();
 		while(System.currentTimeMillis()-init<10000);
 		Dispatcher.create().kill();
-		/*for(Seller s:this.seller_list)
+		for(Seller s:this.seller_list)
 			try {
 				s.join();
 			}catch (InterruptedException e) {
@@ -59,8 +60,25 @@ public class Bursa extends Thread {
 			try {
 				bu.join();
 			}catch (InterruptedException e) {
-				e.printStackTrace();}*/
+				e.printStackTrace();}
+		System.out.println("Tranzactii: "+this.transactions.size());
+		/*for(Tranzactie t:this.transactions)
+			System.out.println(t);*/
 		}
+	
+	public Buyer getBuyer(int id)
+	{this.lock_read_buyer_list();
+	for(Buyer buy:this.buyer_list)
+		{if(buy.getId_buyer()==id)
+          return buy;}
+	return null;}
+	
+	public Seller getSeller(int id)
+	{this.lock_read_seller_list();
+	for(Seller sel:this.seller_list)
+		{if(sel.getId_seller()==id)
+          return sel;}
+	return null;}
 	
 	public List<Tranzactie> getTransactions() {
 		this.lock_read_transactions();

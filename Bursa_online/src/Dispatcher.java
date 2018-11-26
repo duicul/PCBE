@@ -1,58 +1,99 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class Dispatcher {
-	private List<Triplet<String,Filter,Buyer>> buyer_subscr;
-	private List<Triplet<String,Filter,Seller>> seller_subscr;
+public class Dispatcher extends Thread{
+	private List<Triplet<String,Filter,Subscriber>>  subscr;
+	private volatile Queue<Event> events;
 	private static Dispatcher d;
+	private volatile boolean kill=false;
+	private int dispatcher_readers=0,dispatcher_writers=0,dispatcher_writereq=0;
+	private Object o_dispatcher,o_subs;
 	
 	private Dispatcher()
-	{this.buyer_subscr=new ArrayList<Triplet<String,Filter,Buyer>>();
-    this.seller_subscr=new ArrayList<Triplet<String,Filter,Seller>>();}
+	{this.subscr=new ArrayList<Triplet<String,Filter,Subscriber>>();
+	this.events=new LinkedBlockingQueue<Event>();
+	this.o_dispatcher=new Object();
+	this.o_subs=new Object();
+	this.start();
+	}
 	
 	public static Dispatcher create()
     {
     	d=(d==null)?new Dispatcher():d;	
     	return d;}
 	
-	public Triplet<String,Filter,Buyer> addSubscriber(Buyer b,Filter f,String e)
-	{this.buyer_subscr.add(new Triplet<String, Filter, Buyer>(e,f,b));
-	return new Triplet<String, Filter, Buyer>(e,f,b);}
-	
-	public Triplet<String,Filter,Seller> addSubscriber(Seller s,Filter f,String e)
-	{this.seller_subscr.add(new Triplet<String, Filter, Seller>(e,f,s));
-	return new Triplet<String, Filter, Seller>(e,f,s);}
-	
-	public void kill()
-	{for(Triplet<String,Filter,Seller> ts:this.seller_subscr)
-		{ts.third.inform(null,new Event("kill",-1,-1));}
-	for(Triplet<String,Filter,Buyer> tb:this.buyer_subscr)
-	{tb.third.inform(null,new Event("kill",-1,-1));}
+	public void run(){
+		while(!kill)
+		{//System.out.println("Events "+this.events.size());
+			if(this.events.size()>0)
+		{this.lock_write_dispatcher();
+		Event e=this.events.remove();
+		for(Triplet<String,Filter,Subscriber> s:this.subscr)
+		   if(s.first.equals(e.name)&&s.second.apply(e))
+			s.third.inform(e);	
+		this.unlock_write_dispatcher();
+		}}	
+		System.out.println("Events "+this.events.size());
+		/*this.lock_write_dispatcher();
+		for(Triplet<String,Filter,Subscriber> s:this.subscr)
+			for(Event e:this.events)   
+			if(s.first.equals(e.name)&&s.second.apply(e))
+				s.third.inform(e);*/
+		this.unlock_write_dispatcher();
+		for(Triplet<String,Filter,Subscriber> ts:this.subscr)
+		{ts.third.inform(new Event("kill",-1,-1,-1));}
+		System.out.println("Dispatcher kill");
+		this.d=null;
 	}
 	
-	public void publish(Seller s,Event e)
-	{//System.out.println("publish seller "+e.value+e.name);
-	for(Triplet<String,Filter,Buyer> ts:this.buyer_subscr)
-	if(e.name.equals(ts.first)&&ts.second.apply(e))
-	{ts.third.inform(s,e);
-	}}
+	public Triplet<String,Filter,Subscriber>  addSubscriber(Subscriber s,Filter f,String e)
+	{synchronized (this.o_subs) {Triplet<String, Filter, Subscriber> sub=new Triplet<String, Filter, Subscriber>(e,f,s);
+		this.subscr.add(sub);
+	return sub;}}
 	
-	public void publish(Buyer b,Event e)
-	{//System.out.println("publish buyer "+e.value+e.name);
-		for(Triplet<String,Filter,Seller> ts:this.seller_subscr)
-		if(e.name.equals(ts.first)&&ts.second.apply(e))
-		{ts.third.inform(b,e);
-		}}	
 	
-	public boolean unsubscribe(Buyer b,Triplet<String,Filter,Buyer> tb)
-	{if(tb.third==b)
-		{this.buyer_subscr.remove(tb);
-		return true;}
-	return false;}
+	public void kill()
+	{this.kill=true;}
 	
-	public boolean unsubscribe(Seller s,Triplet<String,Filter,Seller> ts)
-	{if(ts.third==s)
-		{this.seller_subscr.remove(ts);
-		return true;}
-	return false;}
+	public void publish(Event e)
+	{synchronized (this.o_dispatcher)
+		{this.events.offer(e);}}
+	
+	private void lock_read_dispatcher(){
+		//System.out.println("lock_read_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);
+		synchronized(this.o_dispatcher){
+			while(this.dispatcher_writers>0||this.dispatcher_writereq>0)
+				try {
+					this.o_dispatcher.wait();
+				}catch (InterruptedException e) {
+					e.printStackTrace();}
+			this.dispatcher_readers++;
+			this.o_dispatcher.notifyAll();}}
+	   
+	private void unlock_read_dispatcher(){
+		///System.out.println("unlock_read_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);
+		synchronized(this.o_dispatcher){
+			this.dispatcher_readers--;
+			this.o_dispatcher.notifyAll();}}
+
+	private void lock_write_dispatcher(){
+		//System.out.println("lock_write_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);
+		synchronized(this.o_dispatcher){
+			this.dispatcher_writereq++;
+			while(this.dispatcher_writers>0||this.dispatcher_readers>0)
+				try {
+					this.o_dispatcher.wait();
+			    }catch (InterruptedException e) {		
+			    	e.printStackTrace();}
+			this.dispatcher_writereq--;
+			this.dispatcher_writers++;
+			this.o_dispatcher.notifyAll();}}
+	   
+	private void unlock_write_dispatcher(){
+		//System.out.println("unlock_write_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);
+		synchronized(this.o_dispatcher){
+			this.dispatcher_writers--;
+			this.o_dispatcher.notifyAll();}}
 }

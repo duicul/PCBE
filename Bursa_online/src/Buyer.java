@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Buyer extends Thread {
+public class Buyer extends Thread implements Subscriber {
 	private int id_buyer,price,no_stock;
 	private int buyer_readers=0,buyer_writers=0,buyer_writereq=0;
 	private Object o_buy;
@@ -9,6 +9,7 @@ public class Buyer extends Thread {
 	private volatile boolean kill=false;
 
 	public Buyer(int id_buyer,Bursa b,Dispatcher d){
+		System.out.println("Buyer create");
 		this.o_buy=new Object();
 		this.id_buyer=id_buyer;
 		this.b=b;
@@ -16,7 +17,7 @@ public class Buyer extends Thread {
 		d.addSubscriber(this, new Filter("sell"), "sell");}
         
 	public void calculateStock(){ 
-	   int price_aux=(b.getAverageTransactionPriceSelling()+b.getMinimumTransactionPriceSelling())/2;//(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMinimumTransactionPriceSold())/3;
+	   int price_aux=(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMinimumTransactionPriceSold())/3;
 	   int no_stock_aux=(b.getMaximumTransactionNoStockSelling()+b.getAverageTransactionNoStockSold())/2;//+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold())/3;
 	   this.lock_write_buyer();
 	   //System.out.println("calculate buyer");
@@ -24,11 +25,12 @@ public class Buyer extends Thread {
 	   this.no_stock=no_stock_aux;
 	   //System.out.println("calculate stock "+this.id_buyer+" "+this.no_stock+" "+this.price);
 	   this.unlock_write_buyer();
-	   d.publish(this, new Event("buy",this.price,this.no_stock));
-	   
+	   //this.lock_read_buyer();
+	   d.publish(new Event("buy",this.price,this.no_stock,this.id_buyer));
+	   //this.unlock_read_buyer();
 	}
 	
-	public synchronized void buy_stock(Seller se){
+	public void buy_stock(Seller se){
     	//System.out.println("sell stock "+this.getId()+this.getPrice());
     	if(se.getPrice()==this.getPrice()) {
     		b.add_transaction(this, se);
@@ -36,19 +38,20 @@ public class Buyer extends Thread {
     		se.generate();}
     	}
 	
-	public void inform(Seller b,Event e)
+	public synchronized void inform(Event e)
     {if(e.name.equals("kill"))
     	{kill=true;
-    	System.out.println("Buyer interrupted");return;}
+    	System.out.println("Buyer interrupted");
+    	return;}
     else if(e.name.equals("sell"))
-    {this.buy_stock(b);}
+    {this.buy_stock(b.getSeller(e.id));}
 		
     }
        
 	public void run(){
 		while(!kill)
-		{if(new Random().nextFloat()>0.9)
-    		this.calculateStock();}
+		{/*if(new Random().nextFloat()>0.9)
+    		this.calculateStock();*/}
 		System.out.println("Buyer kill");
 	}
     
