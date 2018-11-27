@@ -17,7 +17,7 @@ public class Buyer extends Thread implements Subscriber {
 		d.addSubscriber(this, new Filter("sell"), "sell");}
         
 	public void calculateStock(){ 
-	   int price_aux=(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+b.getMinimumTransactionPriceSold())/3;
+	   int price_aux=/*(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+*/b.getMinimumTransactionPriceSelling();
 	   int no_stock_aux=(b.getMaximumTransactionNoStockSelling()+b.getAverageTransactionNoStockSold())/2;//+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold())/3;
 	   this.lock_write_buyer();
 	   //System.out.println("calculate buyer");
@@ -31,7 +31,7 @@ public class Buyer extends Thread implements Subscriber {
 	}
 	
 	public void buy_stock(Seller se){
-    	//System.out.println("sell stock "+this.getId()+this.getPrice());
+    	//System.out.println("buy stock "+this.getId()+" "+this.getPrice()+" "+se.getPrice());
     	if(se.getPrice()==this.getPrice()) {
     		b.add_transaction(this, se);
     		this.calculateStock();
@@ -49,9 +49,10 @@ public class Buyer extends Thread implements Subscriber {
     }
        
 	public void run(){
+		this.calculateStock();
 		while(!kill)
-		{/*if(new Random().nextFloat()>0.9)
-    		this.calculateStock();*/}
+		{if(new Random().nextFloat()>0.8)
+    		this.calculateStock();}
 		System.out.println("Buyer kill");
 	}
     

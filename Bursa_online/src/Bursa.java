@@ -63,8 +63,8 @@ public class Bursa extends Thread {
 				e.printStackTrace();}
 		System.out.println("Tranzactii: "+this.transactions.size());
 		/*for(Tranzactie t:this.transactions)
-			System.out.println(t);*/
-		}
+			System.out.println(t);
+		*/}
 	
 	public Buyer getBuyer(int id)
 	{this.lock_read_buyer_list();

@@ -40,7 +40,7 @@ public class Seller extends Thread implements Subscriber{
     	}
     
     public void generate(){
-    	int price_aux=/*(b.getAverageTransactionPriceBuying()+b.getAverageTransactionPriceSelling()+*/b.getMaximumTransactionPriceSold();
+    	int price_aux=/*(b.getAverageTransactionPriceBuying()+b.getAverageTransactionPriceSelling()+*/(b.getMaximumTransactionPriceBuying()+new Random().nextInt(300)+200)/2;
     	int no_stock_aux=(b.getAverageTransactionNoStockSelling()+b.getAverageTransactionNoStockBuying()+b.getMaximumTransactionNoStockSold()+new Random().nextInt(10)+20+new Random().nextInt(10)+20)/5;
     	this.lock_write_seller();
     	//System.out.println("generate buyer");
@@ -54,7 +54,7 @@ public class Seller extends Thread implements Subscriber{
     }
     
     public void sell_stock(Buyer bu){
-    	//System.out.println("sell stock "+this.getId()+this.getPrice());
+    	//System.out.println("sell stock "+this.getId()+" "+this.getPrice()+" "+bu.getPrice());
     	if(bu.getPrice()==this.getPrice()) {
     		b.add_transaction(bu, this);
     		this.generate();
@@ -62,13 +62,14 @@ public class Seller extends Thread implements Subscriber{
     	}
     
     public void run(){
+    	this.generate();
     	while(!kill)
-    	{if(new Random().nextFloat()>0.7)
+    	{if(new Random().nextFloat()>0.8)
     		this.generate();
-    	if(new Random().nextFloat()>0.9)
+    	/*if(new Random().nextFloat()>0.9)
     		this.raisePrice((int)new Random().nextFloat()*50);
     	if(new Random().nextFloat()>0.9)
-    		this.lowerPrice((int)new Random().nextFloat()*50);
+    		this.lowerPrice((int)new Random().nextFloat()*50);*/
     	}
     	System.out.println("Seller kill");
     }

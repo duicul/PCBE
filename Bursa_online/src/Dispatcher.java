@@ -10,6 +10,7 @@ public class Dispatcher extends Thread{
 	private volatile boolean kill=false;
 	private int dispatcher_readers=0,dispatcher_writers=0,dispatcher_writereq=0;
 	private Object o_dispatcher,o_subs;
+	public static int ev=0;
 	
 	private Dispatcher()
 	{this.subscr=new ArrayList<Triplet<String,Filter,Subscriber>>();
@@ -24,24 +25,31 @@ public class Dispatcher extends Thread{
     	d=(d==null)?new Dispatcher():d;	
     	return d;}
 	
+	public void post(Event e)
+	{this.lock_read_dispatcher();
+	for(Triplet<String,Filter,Subscriber> s:this.subscr)
+	   if(s.first.equals(e.name)&&s.second.apply(e))
+		s.third.inform(e);	
+	this.unlock_read_dispatcher();
+	}
+	
 	public void run(){
 		while(!kill)
 		{//System.out.println("Events "+this.events.size());
 			if(this.events.size()>0)
 		{this.lock_write_dispatcher();
 		Event e=this.events.remove();
-		for(Triplet<String,Filter,Subscriber> s:this.subscr)
-		   if(s.first.equals(e.name)&&s.second.apply(e))
-			s.third.inform(e);	
 		this.unlock_write_dispatcher();
-		}}	
+		//new DispatcherThread(e).start();
+		this.post(e);
+		}}
+		
 		System.out.println("Events "+this.events.size());
 		/*this.lock_write_dispatcher();
-		for(Triplet<String,Filter,Subscriber> s:this.subscr)
-			for(Event e:this.events)   
-			if(s.first.equals(e.name)&&s.second.apply(e))
-				s.third.inform(e);*/
-		this.unlock_write_dispatcher();
+		for(Event e:this.events)
+			this.post(e);
+		this.unlock_write_dispatcher();*/
+		
 		for(Triplet<String,Filter,Subscriber> ts:this.subscr)
 		{ts.third.inform(new Event("kill",-1,-1,-1));}
 		System.out.println("Dispatcher kill");
@@ -59,7 +67,8 @@ public class Dispatcher extends Thread{
 	
 	public void publish(Event e)
 	{synchronized (this.o_dispatcher)
-		{this.events.offer(e);}}
+		{ev++;if(!kill)
+			this.events.offer(e);}}
 	
 	private void lock_read_dispatcher(){
 		//System.out.println("lock_read_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);
