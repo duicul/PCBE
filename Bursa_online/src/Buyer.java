@@ -14,7 +14,7 @@ public class Buyer extends Thread implements Subscriber {
 		this.id_buyer=id_buyer;
 		this.b=b;
 		this.d=d;
-		d.addSubscriber(this, new Filter("sell"), "sell");}
+		d.addSubscriber(this, new FilterSubscrValue("sell",this), "sell");}
         
 	public void calculateStock(){ 
 	   int price_aux=/*(b.getAverageTransactionPriceSelling()+b.getAverageTransactionPriceBuying()+*/b.getMinimumTransactionPriceSelling();
@@ -43,7 +43,7 @@ public class Buyer extends Thread implements Subscriber {
     	{kill=true;
     	System.out.println("Buyer interrupted");
     	return;}
-    else if(e.name.equals("sell"))
+    else if(e.name.equals("sell")/*&&e.value==this.getPrice()*/)
     {this.buy_stock(b.getSeller(e.id));}
 		
     }
@@ -55,10 +55,8 @@ public class Buyer extends Thread implements Subscriber {
     		this.calculateStock();}
 		System.out.println("Buyer kill");
 	}
-    
-	public void buy(){}
     	
-	public int getId_buyer() {
+	public int getIdSub() {
 		return id_buyer;}
 	
 	public int getPrice() {
@@ -67,7 +65,7 @@ public class Buyer extends Thread implements Subscriber {
 		this.unlock_read_buyer();
 		return aux;}
 	
-	public int getNo_stocks() {
+	public int getNo_stock() {
 		this.lock_read_buyer();
 		int aux=no_stock;
 		this.unlock_read_buyer();

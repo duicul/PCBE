@@ -9,12 +9,14 @@ public class Bursa extends Thread {
 	private int seller_list_readers=0,seller_list_writers=0,seller_list_writereq=0;
 	private int buyer_list_readers=0,buyer_list_writers=0,buyer_list_writereq=0;
 	private int trans_readers=0,trans_writers=0,trans_writereq=0;
+	private int simulation_time;
 	private Object o_sell,o_buy,o_trans;
 	private static Bursa b=null;
   
-    private Bursa(int no_seller,int no_buyer)
+    private Bursa(int no_seller,int no_buyer,int simulation_time)
     {  	int i;
     	seller_list=new ArrayList<Seller>();
+    	this.simulation_time=simulation_time;
     	for(i=0;i<no_seller;i++)
     		seller_list.add(new Seller(i,this,Dispatcher.create()));
     	buyer_list=new ArrayList<Buyer>();
@@ -25,9 +27,9 @@ public class Bursa extends Thread {
     	this.o_sell=new Object();
     	this.o_trans=new Object();}
     	
-    	 public static Bursa create(int no_seller,int no_buyer)
+    	 public static Bursa create(int no_seller,int no_buyer,int simulation_time)
     { 	System.out.println("Bursa create");
-    		 b=(b==null)?new Bursa(no_buyer,no_seller):b;	
+    		 b=(b==null)?new Bursa(no_buyer,no_seller,simulation_time):b;	
     	return b;}
     
     private Bursa()
@@ -49,7 +51,7 @@ public class Bursa extends Thread {
 		for(Buyer bu:this.buyer_list)
 			bu.start();
 		long init=System.currentTimeMillis();
-		while(System.currentTimeMillis()-init<10000);
+		while(System.currentTimeMillis()-init<this.simulation_time);
 		Dispatcher.create().kill();
 		for(Seller s:this.seller_list)
 			try {
@@ -69,14 +71,14 @@ public class Bursa extends Thread {
 	public Buyer getBuyer(int id)
 	{this.lock_read_buyer_list();
 	for(Buyer buy:this.buyer_list)
-		{if(buy.getId_buyer()==id)
+		{if(buy.getIdSub()==id)
           return buy;}
 	return null;}
 	
 	public Seller getSeller(int id)
 	{this.lock_read_seller_list();
 	for(Seller sel:this.seller_list)
-		{if(sel.getId_seller()==id)
+		{if(sel.getIdSub()==id)
           return sel;}
 	return null;}
 	
@@ -88,9 +90,9 @@ public class Bursa extends Thread {
 		return aux;}
 	
 	public void add_transaction(Buyer bu,Seller se){
-		int no_stock_real=bu.getNo_stocks()<se.getNo_stock()?bu.getNo_stocks():se.getNo_stock();
+		int no_stock_real=bu.getNo_stock()<se.getNo_stock()?bu.getNo_stock():se.getNo_stock();
 		this.lock_write_transactions();
-		this.transactions.add(new Tranzactie(se.getId_seller(),bu.getId_buyer(),bu.getPrice(),no_stock_real));
+		this.transactions.add(new Tranzactie(se.getIdSub(),bu.getIdSub(),bu.getPrice(),no_stock_real));
 		this.unlock_write_transactions();}
 
 	private void lock_read_seller_list(){
@@ -243,7 +245,7 @@ public class Bursa extends Thread {
 		this.lock_read_buyer_list();
 		int sum=0;
 		for(Buyer b:this.buyer_list)
-			{sum+=b.getNo_stocks();}
+			{sum+=b.getNo_stock();}
 		sum/=this.buyer_list.size();
 		this.unlock_read_buyer_list();
 		return sum;}
@@ -305,7 +307,7 @@ public class Bursa extends Thread {
 		if(this.buyer_list.size()>0){
 			sum=this.buyer_list.get(0).getPrice();
 			for(Buyer s:this.buyer_list)
-				{sum=sum<s.getNo_stocks()?sum:s.getPrice();}}
+				{sum=sum<s.getNo_stock()?sum:s.getPrice();}}
 		this.unlock_read_buyer_list();
 		return sum;}
 		
@@ -365,7 +367,7 @@ public class Bursa extends Thread {
 		if(this.buyer_list.size()>0){
 			sum=this.buyer_list.get(0).getPrice();
 			for(Buyer s:this.buyer_list)
-				{sum=sum>s.getNo_stocks()?sum:s.getPrice();}}
+				{sum=sum>s.getNo_stock()?sum:s.getPrice();}}
 		this.unlock_read_buyer_list();
 		return sum;}
 		

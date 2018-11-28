@@ -1,9 +1,8 @@
 
 public class Event {
 public final String name;
-public final float value;
-public final int no,id;
-public Event(String name,float value,int no,int id)
+public final int no,id,value;
+public Event(String name,int value,int no,int id)
 {this.name=name;
 this.value=value;
 this.no=no;

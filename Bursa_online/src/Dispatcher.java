@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Dispatcher extends Thread{
 	private List<Triplet<String,Filter,Subscriber>>  subscr;
 	private volatile Queue<Event> events;
+	private  Queue<Thread> ths;
 	private static Dispatcher d;
 	private volatile boolean kill=false;
 	private int dispatcher_readers=0,dispatcher_writers=0,dispatcher_writereq=0;
@@ -15,9 +16,9 @@ public class Dispatcher extends Thread{
 	private Dispatcher()
 	{this.subscr=new ArrayList<Triplet<String,Filter,Subscriber>>();
 	this.events=new LinkedBlockingQueue<Event>();
+	this.ths=new LinkedBlockingQueue<Thread>();
 	this.o_dispatcher=new Object();
 	this.o_subs=new Object();
-	this.start();
 	}
 	
 	public static Dispatcher create()
@@ -40,20 +41,42 @@ public class Dispatcher extends Thread{
 		{this.lock_write_dispatcher();
 		Event e=this.events.remove();
 		this.unlock_write_dispatcher();
-		//new DispatcherThread(e).start();
+		/*Thread t=new DispatcherThread(e);
+		this.ths.add(t);
+		t.start();*/
 		this.post(e);
 		}}
 		
-		System.out.println("Events "+this.events.size());
-		/*this.lock_write_dispatcher();
-		for(Event e:this.events)
-			this.post(e);
-		this.unlock_write_dispatcher();*/
+		while(!ths.isEmpty())
+		{try {
+			ths.remove().join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();}}
 		
 		for(Triplet<String,Filter,Subscriber> ts:this.subscr)
 		{ts.third.inform(new Event("kill",-1,-1,-1));}
+		
+		System.out.println("Events "+this.events.size());
+		while(!this.events.isEmpty())
+		{this.lock_write_dispatcher();
+		Event e=this.events.remove();
+		this.unlock_write_dispatcher();
+		/*Thread t=new DispatcherThread(e);
+		this.ths.add(t);
+		t.start();*/
+		this.post(e);}
+		System.out.println("Events sent");
+		
+		while(!ths.isEmpty())
+		{try {
+			ths.remove().join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();}}
+	
 		System.out.println("Dispatcher kill");
-		this.d=null;
+		//this.d=null;
 	}
 	
 	public Triplet<String,Filter,Subscriber>  addSubscriber(Subscriber s,Filter f,String e)
@@ -66,9 +89,9 @@ public class Dispatcher extends Thread{
 	{this.kill=true;}
 	
 	public void publish(Event e)
-	{synchronized (this.o_dispatcher)
-		{ev++;if(!kill)
-			this.events.offer(e);}}
+	{	if(!kill)
+		synchronized (this.o_dispatcher)
+		{ev++;this.events.offer(e);}}
 	
 	private void lock_read_dispatcher(){
 		//System.out.println("lock_read_dispatcher"+this.dispatcher_readers+" "+this.dispatcher_writers+" "+this.dispatcher_writereq);

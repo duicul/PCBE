@@ -15,7 +15,7 @@ public class Seller extends Thread implements Subscriber{
 		this.price=price;
 		this.b=b;
 		this.d=d;
-		d.addSubscriber(this, new Filter("buy"), "buy");}
+		d.addSubscriber(this, new FilterSubscrValue("buy",this), "buy");}
     
     public boolean raisePrice(int percent){
     	if(percent>0&&percent<100){
@@ -79,12 +79,12 @@ public class Seller extends Thread implements Subscriber{
     	{kill=true;
     	System.out.println("Seller interrupted");
     	}
-    else if(e.name.equals("buy"))
+    else if(e.name.equals("buy")/*&&e.value==this.getPrice()*/)
     {this.sell_stock(b.getBuyer(e.id));}
     
     }   
 
-    public int getId_seller() {
+    public int getIdSub() {
 		return id_seller;}
 
 	public int getNo_stock() {
