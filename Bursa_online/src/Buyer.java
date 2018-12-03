@@ -30,7 +30,7 @@ public class Buyer extends Thread implements Subscriber {
 	   //this.unlock_read_buyer();
 	}
 	
-	public void buy_stock(Seller se){
+	private void buy_stock(Seller se){
     	//System.out.println("buy stock "+this.getId()+" "+this.getPrice()+" "+se.getPrice());
     	if(se.getPrice()==this.getPrice()) {
     		b.add_transaction(this, se);

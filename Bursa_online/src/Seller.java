@@ -17,7 +17,7 @@ public class Seller extends Thread implements Subscriber{
 		this.d=d;
 		d.addSubscriber(this, new FilterSubscrValue("buy",this), "buy");}
     
-    public boolean raisePrice(int percent){
+    private boolean raisePrice(int percent){
     	if(percent>0&&percent<100){
     		this.lock_write_seller();
     		this.price+=(this.price*percent)/100;
@@ -25,7 +25,7 @@ public class Seller extends Thread implements Subscriber{
     		return true;}
     	return false;}
     
-    public boolean lowerPrice(int percent){
+    private boolean lowerPrice(int percent){
     	if(percent>0&&percent<100) {
     		this.lock_write_seller();
     		this.price-=(this.price*percent)/100;
@@ -53,7 +53,7 @@ public class Seller extends Thread implements Subscriber{
     	//this.unlock_read_seller();
     }
     
-    public void sell_stock(Buyer bu){
+    private void sell_stock(Buyer bu){
     	//System.out.println("sell stock "+this.getId()+" "+this.getPrice()+" "+bu.getPrice());
     	if(bu.getPrice()==this.getPrice()) {
     		b.add_transaction(bu, this);
